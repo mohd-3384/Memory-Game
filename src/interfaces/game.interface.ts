@@ -2,6 +2,7 @@ export type ThemeId = 'code-vibes' | 'DA' | 'food' | 'games'
 export type PlayerId = 'blue' | 'orange'
 export type PlayerCount = 1 | 2
 export type BoardSize = 16 | 24 | 36
+export type AppLanguage = 'en' | 'de'
 
 export interface Theme {
     id: ThemeId
@@ -24,4 +25,5 @@ export interface GameSettings {
     player: PlayerId
     boardSize: BoardSize
     soundEnabled: boolean
+    language: AppLanguage
 }

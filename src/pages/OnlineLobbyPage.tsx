@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getThemeById } from '../data/themes'
+import { getTranslations } from '../data/translations'
 import type { GameSettings, PlayerId } from '../interfaces/game.interface'
 import type { JoinedRoomPayload, OnlineRoomState } from '../interfaces/online.interface'
 import { buildDeck } from '../utils/game'
@@ -15,6 +16,7 @@ type OnlineLobbyPageProps = {
 export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
+    const text = getTranslations(settings.language)
 
     const [roomId, setRoomId] = useState('')
     const [joinCode, setJoinCode] = useState('')
@@ -24,6 +26,57 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
     const [error, setError] = useState('')
     const [copied, setCopied] = useState(false)
     const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
+    const [isCreatingRoom, setIsCreatingRoom] = useState(false)
+    const [isJoiningRoom, setIsJoiningRoom] = useState(false)
+
+    function storePlayerSession(nextRoomId: string, nextPlayerId: PlayerId, nextPlayerKey: string) {
+        try {
+            localStorage.setItem(
+                `${ONLINE_PLAYER_KEY_PREFIX}${nextRoomId}`,
+                JSON.stringify({ playerId: nextPlayerId, playerKey: nextPlayerKey }),
+            )
+        } catch {
+            // Ignore storage failures and keep the session alive in memory.
+        }
+    }
+
+    function applyJoinedRoom(payload: JoinedRoomPayload) {
+        setRoomId(payload.roomId)
+        setPlayerId(payload.playerId)
+        setPlayerKey(payload.playerKey)
+        storePlayerSession(payload.roomId, payload.playerId, payload.playerKey)
+        setError('')
+    }
+
+    async function ensureSocketConnected() {
+        if (socket.connected) {
+            return
+        }
+
+        await new Promise<void>((resolve, reject) => {
+            const timeoutId = window.setTimeout(() => {
+                socket.off('connect', handleConnect)
+                socket.off('connect_error', handleConnectError)
+                reject(new Error(text.onlineErrorReachServer))
+            }, 8000)
+
+            function handleConnect() {
+                window.clearTimeout(timeoutId)
+                socket.off('connect_error', handleConnectError)
+                resolve()
+            }
+
+            function handleConnectError() {
+                window.clearTimeout(timeoutId)
+                socket.off('connect', handleConnect)
+                reject(new Error(text.onlineErrorReachServer))
+            }
+
+            socket.once('connect', handleConnect)
+            socket.once('connect_error', handleConnectError)
+            socket.connect()
+        })
+    }
 
     useEffect(() => {
         if (!socket.connected) {
@@ -31,14 +84,7 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
         }
 
         function handleJoinedRoom(payload: JoinedRoomPayload) {
-            setRoomId(payload.roomId)
-            setPlayerId(payload.playerId)
-            setPlayerKey(payload.playerKey)
-            localStorage.setItem(
-                `${ONLINE_PLAYER_KEY_PREFIX}${payload.roomId}`,
-                JSON.stringify({ playerId: payload.playerId, playerKey: payload.playerKey }),
-            )
-            setError('')
+            applyJoinedRoom(payload)
         }
 
         function handleRoomState(nextState: OnlineRoomState) {
@@ -77,65 +123,152 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
     }, [roomState, roomId, playerId, playerKey, navigate])
 
     function createRoom() {
-        const deck = buildDeck(activeTheme, settings.boardSize)
+        void (async () => {
+            setError('')
+            setIsCreatingRoom(true)
 
-        socket.emit(
-            'create_room',
-            {
-                settings: {
-                    themeId: settings.themeId,
-                    boardSize: settings.boardSize,
-                },
-                deck,
-                themeFront: activeTheme.front,
-            },
-            (response: { ok: boolean; message?: string }) => {
-                if (!response.ok) {
-                    setError(response.message ?? 'Could not create room.')
-                }
-            },
-        )
+            try {
+                await ensureSocketConnected()
+
+                const deck = buildDeck(activeTheme, settings.boardSize)
+                const timeoutId = window.setTimeout(() => {
+                    setIsCreatingRoom(false)
+                    setError(text.onlineErrorTimeout)
+                }, 8000)
+
+                socket.emit(
+                    'create_room',
+                    {
+                        settings: {
+                            themeId: settings.themeId,
+                            boardSize: settings.boardSize,
+                        },
+                        deck,
+                        themeFront: activeTheme.front,
+                    },
+                    (response: {
+                        ok: boolean
+                        message?: string
+                        roomId?: string
+                        playerId?: PlayerId
+                        playerKey?: string
+                    }) => {
+                        window.clearTimeout(timeoutId)
+                        setIsCreatingRoom(false)
+
+                        if (!response.ok) {
+                            setError(response.message ?? text.onlineErrorCreateRoom)
+                            return
+                        }
+
+                        if (response.roomId && response.playerId && response.playerKey) {
+                            applyJoinedRoom({
+                                roomId: response.roomId,
+                                playerId: response.playerId,
+                                playerKey: response.playerKey,
+                            })
+                            socket.emit('sync_room', { roomId: response.roomId, playerKey: response.playerKey })
+                        }
+                    },
+                )
+            } catch (connectionError) {
+                setIsCreatingRoom(false)
+                setError(
+                    connectionError instanceof Error ? connectionError.message : text.onlineErrorConnectServer,
+                )
+            }
+        })()
     }
 
     function joinRoom() {
-        const normalized = joinCode.trim().toUpperCase()
-        if (!normalized) {
-            setError('Please enter a room code.')
-            return
-        }
-
-        let reconnectKey = ''
-        const stored = localStorage.getItem(`${ONLINE_PLAYER_KEY_PREFIX}${normalized}`)
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored) as { playerKey?: string }
-                reconnectKey = parsed.playerKey ?? ''
-            } catch {
-                reconnectKey = ''
+        void (async () => {
+            const normalized = joinCode.trim().toUpperCase()
+            if (!normalized) {
+                setError(text.onlineErrorEnterCode)
+                return
             }
-        }
 
-        socket.emit(
-            'join_room',
-            { roomId: normalized, playerKey: reconnectKey },
-            (response: { ok: boolean; message?: string }) => {
-                if (!response.ok) {
-                    setError(response.message ?? 'Could not join room.')
+            setError('')
+            setIsJoiningRoom(true)
+
+            let reconnectKey = ''
+            const stored = localStorage.getItem(`${ONLINE_PLAYER_KEY_PREFIX}${normalized}`)
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored) as { playerKey?: string }
+                    reconnectKey = parsed.playerKey ?? ''
+                } catch {
+                    reconnectKey = ''
                 }
-            },
-        )
+            }
+
+            try {
+                await ensureSocketConnected()
+
+                const timeoutId = window.setTimeout(() => {
+                    setIsJoiningRoom(false)
+                    setError(text.onlineErrorTimeout)
+                }, 8000)
+
+                socket.emit(
+                    'join_room',
+                    { roomId: normalized, playerKey: reconnectKey },
+                    (response: {
+                        ok: boolean
+                        message?: string
+                        roomId?: string
+                        playerId?: PlayerId
+                        playerKey?: string
+                    }) => {
+                        window.clearTimeout(timeoutId)
+                        setIsJoiningRoom(false)
+
+                        if (!response.ok) {
+                            setError(response.message ?? text.onlineErrorJoinRoom)
+                            return
+                        }
+
+                        if (response.roomId && response.playerId && response.playerKey) {
+                            applyJoinedRoom({
+                                roomId: response.roomId,
+                                playerId: response.playerId,
+                                playerKey: response.playerKey,
+                            })
+                            socket.emit('sync_room', { roomId: response.roomId, playerKey: response.playerKey })
+                        }
+                    },
+                )
+            } catch (connectionError) {
+                setIsJoiningRoom(false)
+                setError(
+                    connectionError instanceof Error ? connectionError.message : text.onlineErrorConnectServer,
+                )
+            }
+        })()
     }
 
     function startOnlineGame() {
-        if (!roomId) {
-            return
-        }
-
-        socket.emit('start_game', { roomId }, (response: { ok: boolean; message?: string }) => {
-            if (!response.ok) {
-                setError(response.message ?? 'Could not start game.')
+        void (async () => {
+            if (!roomId) {
+                return
             }
-        })
+
+            setError('')
+
+            try {
+                await ensureSocketConnected()
+
+                socket.emit('start_game', { roomId }, (response: { ok: boolean; message?: string }) => {
+                    if (!response.ok) {
+                        setError(response.message ?? text.onlineErrorStartGame)
+                    }
+                })
+            } catch (connectionError) {
+                setError(
+                    connectionError instanceof Error ? connectionError.message : text.onlineErrorConnectServer,
+                )
+            }
+        })()
     }
 
     async function copyRoomCode() {
@@ -148,7 +281,7 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
             setCopied(true)
             window.setTimeout(() => setCopied(false), 1200)
         } catch {
-            setError('Could not copy room code.')
+            setError(text.onlineErrorCopyCode)
         }
     }
 
@@ -157,34 +290,34 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
     return (
         <main className="online-page">
             <section className="online-page__panel">
-                <p className="online-page__kicker">Online Multiplayer</p>
-                <h1>Play on 2 devices</h1>
-                <p className="online-page__subtitle">Create a room or join with a code.</p>
+                <p className="online-page__kicker">{text.onlineKicker}</p>
+                <h1>{text.onlinePlayOnTwoDevices}</h1>
+                <p className="online-page__subtitle">{text.onlineCreateOrJoin}</p>
                 <p className={`online-connection ${isSocketConnected ? 'is-online' : 'is-offline'}`}>
-                    {isSocketConnected ? 'Connected to server' : 'Connection lost'}
+                    {isSocketConnected ? text.onlineConnected : text.onlineDisconnected}
                 </p>
 
                 <div className="online-page__actions">
                     <button type="button" className="button button--primary" onClick={createRoom}>
-                        Create Room
+                        {isCreatingRoom ? text.onlineCreating : text.onlineCreateRoom}
                     </button>
                     <button type="button" className="button button--ghost" onClick={() => navigate('/settings')}>
-                        Back to Settings
+                        {text.onlineBackToSettings}
                     </button>
                 </div>
 
                 <div className="online-join">
-                    <label htmlFor="room-code">Join room</label>
+                    <label htmlFor="room-code">{text.onlineJoinRoom}</label>
                     <div className="online-join__row">
                         <input
                             id="room-code"
                             value={joinCode}
                             onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
-                            placeholder="Enter code"
+                            placeholder={text.onlineEnterCode}
                             maxLength={6}
                         />
                         <button type="button" className="button button--ghost" onClick={joinRoom}>
-                            Join
+                            {isJoiningRoom ? text.onlineJoining : text.onlineJoin}
                         </button>
                     </div>
                 </div>
@@ -192,17 +325,17 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
                 {roomId ? (
                     <div className="online-room">
                         <p>
-                            Room code: <strong>{roomId}</strong>
+                            {text.onlineRoomCode}: <strong>{roomId}</strong>
                             <button type="button" className="button button--ghost online-room__copy" onClick={copyRoomCode}>
-                                {copied ? 'Copied' : 'Copy'}
+                                {copied ? text.onlineCopied : text.onlineCopy}
                             </button>
                         </p>
                         <p>
-                            You are: <strong>{playerId === 'blue' ? 'Blue (Host)' : 'Orange'}</strong>
+                            {text.onlineYouAre}: <strong>{playerId === 'blue' ? text.onlineBlueHost : text.gameOrange}</strong>
                         </p>
                         <p>
-                            Connected: {roomState?.playersConnected.blue ? 'Blue ✓' : 'Blue · waiting'} /{' '}
-                            {roomState?.playersConnected.orange ? 'Orange ✓' : 'Orange · waiting'}
+                            {text.onlineConnectedRow}: {roomState?.playersConnected.blue ? `${text.gameBlue} ✓` : text.onlineBlueWaiting} /{' '}
+                            {roomState?.playersConnected.orange ? `${text.gameOrange} ✓` : text.onlineOrangeWaiting}
                         </p>
                         {playerId === 'blue' ? (
                             <button
@@ -211,10 +344,10 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
                                 onClick={startOnlineGame}
                                 disabled={!bothConnected}
                             >
-                                Start Online Game
+                                {text.onlineStartGame}
                             </button>
                         ) : (
-                            <p>Waiting for host to start...</p>
+                            <p>{text.onlineWaitingForHost}</p>
                         )}
                     </div>
                 ) : null}

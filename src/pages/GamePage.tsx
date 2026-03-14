@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { LuVolume2, LuVolumeX } from 'react-icons/lu'
 import { MemoryBoard } from '../components/MemoryBoard'
 import { getThemeById } from '../data/themes'
+import { getTranslations } from '../data/translations'
 import type { GameSettings, MemoryCard, PlayerId } from '../interfaces/game.interface'
 import { buildDeck, getBoardColumns } from '../utils/game'
 
@@ -14,6 +15,7 @@ type GamePageProps = {
 export function GamePage({ settings, onSoundChange }: GamePageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
+    const text = getTranslations(settings.language)
     const audioContextRef = useRef<AudioContext | null>(null)
     const hasPlayedWinSoundRef = useRef(false)
 
@@ -27,12 +29,9 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
     const isMultiplayer = settings.playerCount === 2
     const hasWon = deck.length > 0 && deck.every((card) => card.matched)
     const currentRound = hasWon ? moves : moves + 1
-    const winnerText =
-        !isMultiplayer
-            ? `You matched all pairs in ${moves} moves.`
-            : scores.blue === scores.orange
-                ? 'It is a draw! Both players have the same number of pairs.'
-                : `${scores.blue > scores.orange ? 'Blue' : 'Orange'} wins with ${Math.max(scores.blue, scores.orange)} pairs.`
+    const isDraw = isMultiplayer && scores.blue === scores.orange
+    const winnerPlayer = scores.blue > scores.orange ? 'blue' : 'orange'
+    const winnerLabel = winnerPlayer === 'blue' ? `${text.gameBlue} Player` : `${text.gameOrange} Player`
 
     function getAudioContext(): AudioContext | null {
         if (!settings.soundEnabled) {
@@ -204,62 +203,117 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
         }
     }
 
+    if (hasWon) {
+        return (
+            <main className="app app--end" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
+                <section className="app__end-screen">
+                    <div className="app__end-confetti" aria-hidden="true">
+                        <span className="app__end-piece app__end-piece--blue" />
+                        <span className="app__end-piece app__end-piece--red" />
+                        <span className="app__end-piece app__end-piece--gold" />
+                        <span className="app__end-piece app__end-piece--green" />
+                        <span className="app__end-piece app__end-piece--blue" />
+                        <span className="app__end-piece app__end-piece--gold" />
+                        <span className="app__end-piece app__end-piece--red" />
+                    </div>
+
+                    <div className="app__end-copy">
+                        <p className="app__end-kicker">{isMultiplayer ? text.endGameOver : text.endYouWin}</p>
+                        {isMultiplayer ? (
+                            isDraw ? (
+                                <>
+                                    <p className="app__end-subtitle">{text.endResultIs}</p>
+                                    <h1 className="app__end-title app__end-title--draw">{text.endADraw}</h1>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="app__end-subtitle">{text.endWinnerIs}</p>
+                                    <h1 className={`app__end-title app__end-title--${winnerPlayer}`}>{winnerLabel}</h1>
+                                </>
+                            )
+                        ) : (
+                            <p className="app__end-subtitle">{text.endMatchedInMoves.replace('{moves}', String(moves))}</p>
+                        )}
+                    </div>
+
+                    <div className="app__end-scorecard" aria-label={text.endFinalScore}>
+                        <p className="app__end-score-label">{text.endFinalScore}</p>
+                        <div className="app__end-scores">
+                            {isMultiplayer ? (
+                                <>
+                                    <span className="score-chip score-chip--blue">{text.gameBlue} {scores.blue}</span>
+                                    <span className="score-chip score-chip--orange">{text.gameOrange} {scores.orange}</span>
+                                </>
+                            ) : (
+                                <span className="score-chip score-chip--accent">{text.gameMoves} {moves}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="app__end-actions">
+                        <button type="button" className="button button--primary" onClick={() => navigate('/')}>
+                            {text.endBackToStart}
+                        </button>
+                    </div>
+                </section>
+            </main>
+        )
+    }
+
     return (
         <main className="app" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
             <section className="app__panel">
-                <p className="app__kicker">Memory Game</p>
+                <p className="app__kicker">{text.gameKicker}</p>
                 <h1>React + TypeScript + SCSS</h1>
-                <p className="app__subtitle">Theme: {activeTheme.label} · Board: {settings.boardSize} cards</p>
+                <p className="app__subtitle">{text.gameTheme}: {activeTheme.label} · {text.gameBoard}: {settings.boardSize} {text.settingsCards}</p>
 
-                <div className="app__scoreboard" aria-label="Scoreboard">
+                <div className="app__scoreboard" aria-label={text.gameScoreboardAriaLabel}>
                     <div className="app__turn-row">
                         {isMultiplayer ? (
                             <p className="app__turn">
-                                Current player:
+                                {text.gameCurrentPlayer}
                                 <span className={`app__turn-player app__turn-player--${currentPlayer}`}>
                                     <span className="app__turn-arrow" aria-hidden="true">
                                         ►
                                     </span>
-                                    {currentPlayer === 'blue' ? 'Blue' : 'Orange'}
+                                    {currentPlayer === 'blue' ? text.gameBlue : text.gameOrange}
                                 </span>
                             </p>
                         ) : (
-                            <p className="app__turn">Mode: Single player</p>
+                            <p className="app__turn">{text.gameModeSingle}</p>
                         )}
-                        <p className="app__round">Round: {currentRound}</p>
+                        <p className="app__round">{text.gameRound}: {currentRound}</p>
                     </div>
                     <div className="app__scores">
                         {isMultiplayer ? (
                             <>
-                                <span className={`score-chip ${currentPlayer === 'blue' ? 'is-active' : ''}`}>Blue: {scores.blue}</span>
-                                <span className={`score-chip ${currentPlayer === 'orange' ? 'is-active' : ''}`}>Orange: {scores.orange}</span>
+                                <span className={`score-chip ${currentPlayer === 'blue' ? 'is-active' : ''}`}>{text.gameBlue}: {scores.blue}</span>
+                                <span className={`score-chip ${currentPlayer === 'orange' ? 'is-active' : ''}`}>{text.gameOrange}: {scores.orange}</span>
                             </>
                         ) : (
-                            <span className="score-chip is-active">Pairs: {scores.blue}</span>
+                            <span className="score-chip is-active">{text.gamePairs}: {scores.blue}</span>
                         )}
                     </div>
                 </div>
 
                 <div className="app__actions">
                     <button type="button" className="button button--ghost" onClick={() => navigate('/settings')}>
-                        Settings
+                        {text.gameSettings}
                     </button>
                     <button
                         type="button"
                         className="button button--ghost button--sound"
                         onClick={() => onSoundChange(!settings.soundEnabled)}
-                        aria-label={settings.soundEnabled ? 'Turn sound off' : 'Turn sound on'}
+                        aria-label={settings.soundEnabled ? text.gameTurnSoundOff : text.gameTurnSoundOn}
                     >
                         {settings.soundEnabled ? <LuVolume2 /> : <LuVolumeX />}
-                        {settings.soundEnabled ? 'Sound on' : 'Sound off'}
+                        {settings.soundEnabled ? text.gameSoundOn : text.gameSoundOff}
                     </button>
                     <button type="button" className="button button--primary" onClick={startNewGame}>
-                        New Game
+                        {text.gameNewGame}
                     </button>
-                    <p className="app__stats">Moves: {moves}</p>
+                    <p className="app__stats">{text.gameMoves}: {moves}</p>
                 </div>
-
-                {hasWon ? <p className="app__win">{winnerText}</p> : null}
             </section>
 
             <MemoryBoard
@@ -267,6 +321,7 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
                 themeFront={activeTheme.front}
                 flippedCards={flippedCards}
                 boardColumns={getBoardColumns(settings.boardSize)}
+                language={settings.language}
                 onFlip={flipCard}
             />
         </main>

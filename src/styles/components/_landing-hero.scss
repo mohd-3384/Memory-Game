@@ -12,6 +12,33 @@
     z-index: 1;
 }
 
+.landing-language {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    z-index: 3;
+    display: inline-flex;
+    gap: 0.4rem;
+    padding: 0.3rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.landing-language__button {
+    @include button-base(999px, 0.35rem, 0.72rem);
+    font-size: 0.86rem;
+    color: rgba($text-main, 0.86);
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.landing-language__button.is-active {
+    color: #1f2430;
+    background: #dde062;
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
 .play-button {
     @include button-base($radius-md, 0.9rem, 1.2rem);
     display: inline-flex;
@@ -42,6 +69,11 @@
 }
 
 @media (max-width: 560px) {
+    .landing-language {
+        top: 0.7rem;
+        right: 0.7rem;
+    }
+
     .play-button {
         min-width: 190px;
         font-size: 1.5rem;

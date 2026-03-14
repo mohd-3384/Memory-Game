@@ -8,11 +8,13 @@ import { useNavigate } from 'react-router-dom'
 import { SettingsSection } from '../components/SettingsSection'
 import { ThemePreview } from '../components/ThemePreview'
 import { getThemeById, themes } from '../data/themes'
+import { getTranslations } from '../data/translations'
 import type { BoardSize, GameSettings, PlayerCount, PlayerId, ThemeId } from '../interfaces/game.interface'
 import { isBoardSizeAvailable } from '../utils/game'
 
 type SettingsPageProps = {
     settings: GameSettings
+    onLanguageChange: (language: GameSettings['language']) => void
     onThemeChange: (themeId: ThemeId) => void
     onPlayerCountChange: (playerCount: PlayerCount) => void
     onPlayerChange: (player: PlayerId) => void
@@ -26,6 +28,7 @@ const playerCounts: PlayerCount[] = [1, 2]
 
 export function SettingsPage({
     settings,
+    onLanguageChange,
     onThemeChange,
     onPlayerCountChange,
     onPlayerChange,
@@ -34,17 +37,42 @@ export function SettingsPage({
 }: SettingsPageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
+    const text = getTranslations(settings.language)
 
     return (
         <main className="settings-page">
             <section className="settings-layout">
                 <div className="settings-panel">
                     <div className="settings-header">
-                        <h1 className="settings-header__title">Settings</h1>
+                        <h1 className="settings-header__title">{text.settingsTitle}</h1>
                         <span className="settings-header__line" aria-hidden="true" />
                     </div>
 
-                    <SettingsSection icon={HiOutlinePaintBrush} title="Game themes">
+                    <SettingsSection icon={LuUserRound} title={text.settingsLanguage}>
+                        <label className={`settings-option ${settings.language === 'de' ? 'is-selected' : ''}`}>
+                            <input
+                                type="radio"
+                                name="language"
+                                value="de"
+                                checked={settings.language === 'de'}
+                                onChange={() => onLanguageChange('de')}
+                            />
+                            <span>{text.languageGerman}</span>
+                        </label>
+
+                        <label className={`settings-option ${settings.language === 'en' ? 'is-selected' : ''}`}>
+                            <input
+                                type="radio"
+                                name="language"
+                                value="en"
+                                checked={settings.language === 'en'}
+                                onChange={() => onLanguageChange('en')}
+                            />
+                            <span>{text.languageEnglish}</span>
+                        </label>
+                    </SettingsSection>
+
+                    <SettingsSection icon={HiOutlinePaintBrush} title={text.settingsThemes}>
                         {themes.map((theme) => (
                             <label
                                 key={theme.id}
@@ -62,7 +90,7 @@ export function SettingsPage({
                         ))}
                     </SettingsSection>
 
-                    <SettingsSection icon={LuUsers} title="Number of players">
+                    <SettingsSection icon={LuUsers} title={text.settingsPlayerCount}>
                         {playerCounts.map((playerCount) => (
                             <label
                                 key={playerCount}
@@ -75,13 +103,13 @@ export function SettingsPage({
                                     checked={settings.playerCount === playerCount}
                                     onChange={() => onPlayerCountChange(playerCount)}
                                 />
-                                <span>{playerCount === 1 ? '1 Player' : '2 Players (online)'}</span>
+                                <span>{playerCount === 1 ? text.settingsOnePlayer : text.settingsTwoPlayersOnline}</span>
                             </label>
                         ))}
                     </SettingsSection>
 
                     {settings.playerCount === 2 ? (
-                        <SettingsSection icon={LuUserRound} title="Starting player">
+                        <SettingsSection icon={LuUserRound} title={text.settingsStartingPlayer}>
                             {players.map((player) => (
                                 <label
                                     key={player}
@@ -94,13 +122,13 @@ export function SettingsPage({
                                         checked={settings.player === player}
                                         onChange={() => onPlayerChange(player)}
                                     />
-                                    <span>{player === 'blue' ? 'Blue' : 'Orange'}</span>
+                                    <span>{player === 'blue' ? text.gameBlue : text.gameOrange}</span>
                                 </label>
                             ))}
                         </SettingsSection>
                     ) : null}
 
-                    <SettingsSection icon={PiCardsThreeLight} title="Board size">
+                    <SettingsSection icon={PiCardsThreeLight} title={text.settingsBoardSize}>
                         {boardSizes.map((boardSize) => {
                             const disabled = !isBoardSizeAvailable(activeTheme, boardSize)
 
@@ -117,13 +145,13 @@ export function SettingsPage({
                                         onChange={() => onBoardSizeChange(boardSize)}
                                         disabled={disabled}
                                     />
-                                    <span>{boardSize} cards</span>
+                                    <span>{boardSize} {text.settingsCards}</span>
                                 </label>
                             )
                         })}
                     </SettingsSection>
 
-                    <SettingsSection icon={LuVolume2} title="Sound effects">
+                    <SettingsSection icon={LuVolume2} title={text.settingsSoundEffects}>
                         <label className={`settings-option ${settings.soundEnabled ? 'is-selected' : ''}`}>
                             <input
                                 type="radio"
@@ -132,7 +160,7 @@ export function SettingsPage({
                                 checked={settings.soundEnabled}
                                 onChange={() => onSoundChange(true)}
                             />
-                            <span>On</span>
+                            <span>{text.settingsOn}</span>
                         </label>
 
                         <label className={`settings-option ${!settings.soundEnabled ? 'is-selected' : ''}`}>
@@ -143,13 +171,14 @@ export function SettingsPage({
                                 checked={!settings.soundEnabled}
                                 onChange={() => onSoundChange(false)}
                             />
-                            <span>Off</span>
+                            <span>{text.settingsOff}</span>
                         </label>
                     </SettingsSection>
                 </div>
 
                 <ThemePreview
                     theme={activeTheme}
+                    language={settings.language}
                     playerCount={settings.playerCount}
                     boardSize={settings.boardSize}
                     onStart={() => navigate(settings.playerCount === 2 ? '/online' : '/game')}

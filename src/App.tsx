@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import type { BoardSize, GameSettings, PlayerCount, PlayerId, ThemeId } from './interfaces/game.interface'
+import type { AppLanguage, BoardSize, GameSettings, PlayerCount, PlayerId, ThemeId } from './interfaces/game.interface'
 import { getThemeById } from './data/themes'
 import { LandingPage } from './pages/LandingPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -16,6 +16,7 @@ function App() {
     player: 'blue',
     boardSize: 16,
     soundEnabled: true,
+    language: 'en',
   })
 
   function handleThemeChange(themeId: ThemeId) {
@@ -40,14 +41,22 @@ function App() {
     }))
   }
 
+  function handleLanguageChange(language: AppLanguage) {
+    setSettings((currentSettings) => ({ ...currentSettings, language }))
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/"
+        element={<LandingPage language={settings.language} onLanguageChange={handleLanguageChange} />}
+      />
       <Route
         path="/settings"
         element={
           <SettingsPage
             settings={settings}
+            onLanguageChange={handleLanguageChange}
             onThemeChange={handleThemeChange}
             onPlayerCountChange={handlePlayerCountChange}
             onPlayerChange={handlePlayerChange}

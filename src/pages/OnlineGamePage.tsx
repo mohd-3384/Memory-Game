@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LuVolume2, LuVolumeX } from 'react-icons/lu'
 import { MemoryBoard } from '../components/MemoryBoard'
 import { getThemeById } from '../data/themes'
+import { getTranslations } from '../data/translations'
 import type { GameSettings, PlayerId } from '../interfaces/game.interface'
 import type { OnlineRoomState } from '../interfaces/online.interface'
 import { getBoardColumns } from '../utils/game'
@@ -31,6 +32,7 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
     const [roomState, setRoomState] = useState<OnlineRoomState | null>(null)
     const [error, setError] = useState('')
     const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
+    const [showResultSplash, setShowResultSplash] = useState(false)
 
     const audioContextRef = useRef<AudioContext | null>(null)
     const hasPlayedWinSoundRef = useRef(false)
@@ -43,20 +45,13 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
 
         return getThemeById(settings.themeId)
     }, [roomState, settings.themeId])
+    const text = getTranslations(settings.language)
 
-    const winnerText = useMemo(() => {
-        if (!roomState) {
-            return ''
-        }
-
-        if (roomState.scores.blue === roomState.scores.orange) {
-            return 'It is a draw! Both players have the same number of pairs.'
-        }
-
-        const winner = roomState.scores.blue > roomState.scores.orange ? 'Blue' : 'Orange'
-        const score = Math.max(roomState.scores.blue, roomState.scores.orange)
-        return `${winner} wins with ${score} pairs.`
-    }, [roomState])
+    const isDraw = Boolean(roomState && roomState.scores.blue === roomState.scores.orange)
+    const winnerPlayer = roomState && roomState.scores.blue > roomState.scores.orange ? 'blue' : 'orange'
+    const winnerLabel = winnerPlayer === 'blue' ? `${text.gameBlue} Player` : `${text.gameOrange} Player`
+    const playerResultLabel = isDraw ? text.endDraw : playerId === winnerPlayer ? text.endYouWin : text.endYouLost
+    const finalHeadline = isDraw ? text.endDraw : playerId === winnerPlayer ? text.endYouWin : text.endYouLost
 
     const isMyTurn = Boolean(playerId && roomState?.currentPlayer === playerId)
 
@@ -249,6 +244,21 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
         previousStateRef.current = roomState
     }, [roomState])
 
+    useEffect(() => {
+        if (!roomState?.hasWon) {
+            setShowResultSplash(false)
+            return
+        }
+
+        setShowResultSplash(true)
+
+        const timeout = window.setTimeout(() => {
+            setShowResultSplash(false)
+        }, 1800)
+
+        return () => window.clearTimeout(timeout)
+    }, [roomState?.hasWon])
+
     function flipCard(cardUid: string) {
         if (!roomState || !roomId || !isMyTurn) {
             return
@@ -277,7 +287,7 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
 
         socket.emit('rematch_request', { roomId }, (response: { ok: boolean; message?: string }) => {
             if (!response.ok) {
-                setError(response.message ?? 'Could not request rematch.')
+                setError(response.message ?? text.onlineErrorRematch)
             } else {
                 setError('')
             }
@@ -288,15 +298,99 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
         return (
             <main className="app" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
                 <section className="app__panel">
-                    <p className="app__kicker">Online Multiplayer</p>
-                    <h1>Connecting...</h1>
-                    <p className="app__subtitle">Synchronizing room state.</p>
+                    <p className="app__kicker">{text.onlineKicker}</p>
+                    <h1>{text.onlineConnecting}</h1>
+                    <p className="app__subtitle">{text.onlineSyncing}</p>
                     {error ? <p className="online-error">{error}</p> : null}
                     <div className="app__actions">
                         <button type="button" className="button button--ghost" onClick={() => navigate('/online')}>
-                            Back
+                            {text.onlineBack}
                         </button>
                     </div>
+                </section>
+            </main>
+        )
+    }
+
+    if (roomState.hasWon) {
+        if (showResultSplash) {
+            return (
+                <main className="app app--end" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
+                    <section className="app__end-screen app__end-screen--result">
+                        <div className="app__end-confetti" aria-hidden="true">
+                            <span className="app__end-piece app__end-piece--blue" />
+                            <span className="app__end-piece app__end-piece--red" />
+                            <span className="app__end-piece app__end-piece--gold" />
+                            <span className="app__end-piece app__end-piece--green" />
+                            <span className="app__end-piece app__end-piece--blue" />
+                            <span className="app__end-piece app__end-piece--gold" />
+                            <span className="app__end-piece app__end-piece--red" />
+                        </div>
+
+                        <div className="app__end-copy">
+                            <p className={`app__end-kicker app__end-kicker--result ${isDraw ? 'is-draw' : playerId === winnerPlayer ? 'is-win' : 'is-loss'}`}>
+                                {playerResultLabel}
+                            </p>
+                            <p className="app__end-subtitle">
+                                {isDraw ? text.onlineSameScore : `${text.endWinnerIs} ${winnerLabel}.`}
+                            </p>
+                        </div>
+                    </section>
+                </main>
+            )
+        }
+
+        return (
+            <main className="app app--end" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
+                <section className="app__end-screen">
+                    <div className="app__end-confetti" aria-hidden="true">
+                        <span className="app__end-piece app__end-piece--blue" />
+                        <span className="app__end-piece app__end-piece--red" />
+                        <span className="app__end-piece app__end-piece--gold" />
+                        <span className="app__end-piece app__end-piece--green" />
+                        <span className="app__end-piece app__end-piece--blue" />
+                        <span className="app__end-piece app__end-piece--gold" />
+                        <span className="app__end-piece app__end-piece--red" />
+                    </div>
+
+                    <div className="app__end-copy">
+                        <p className={`app__end-kicker ${isDraw ? 'app__end-kicker--result is-draw' : playerId === winnerPlayer ? 'app__end-kicker--result is-win' : 'app__end-kicker--result is-loss'}`}>
+                            {finalHeadline}
+                        </p>
+                        {isDraw ? (
+                            <>
+                                <p className="app__end-subtitle">{text.endResultIs}</p>
+                                <h1 className="app__end-title app__end-title--draw">{text.endADraw}</h1>
+                            </>
+                        ) : (
+                            <>
+                                <p className="app__end-subtitle">{text.endWinnerIs}</p>
+                                <h1 className={`app__end-title app__end-title--${winnerPlayer}`}>{winnerLabel}</h1>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="app__end-scorecard" aria-label={text.endFinalScore}>
+                        <p className="app__end-score-label">{text.endFinalScore}</p>
+                        <div className="app__end-scores">
+                            <span className="score-chip score-chip--blue">{text.gameBlue} {roomState.scores.blue}</span>
+                            <span className="score-chip score-chip--orange">{text.gameOrange} {roomState.scores.orange}</span>
+                        </div>
+                    </div>
+
+                    <div className="app__end-actions">
+                        <button type="button" className="button button--ghost" onClick={requestRematch}>
+                            {text.endRematch}
+                        </button>
+                        <button type="button" className="button button--primary" onClick={() => navigate('/')}>
+                            {text.endBackToStart}
+                        </button>
+                    </div>
+
+                    <p className="app__subtitle">
+                        {text.onlineRematchVotes}: {text.gameBlue} {roomState.rematchVotes.blue ? '✓' : '…'} · {text.gameOrange} {roomState.rematchVotes.orange ? '✓' : '…'}
+                    </p>
+                    {error ? <p className="online-error">{error}</p> : null}
                 </section>
             </main>
         )
@@ -305,63 +399,57 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
     return (
         <main className="app" style={{ '--theme-accent': activeTheme.accent } as CSSProperties}>
             <section className="app__panel">
-                <p className="app__kicker">Online Room · {roomState.roomId}</p>
+                <p className="app__kicker">{text.onlineKicker} · {roomState.roomId}</p>
                 <h1>React + TypeScript + SCSS</h1>
-                <p className="app__subtitle">Theme: {activeTheme.label} · Board: {roomState.settings.boardSize} cards</p>
+                <p className="app__subtitle">{text.gameTheme}: {activeTheme.label} · {text.gameBoard}: {roomState.settings.boardSize} {text.settingsCards}</p>
                 <p className={`online-connection ${isSocketConnected ? 'is-online' : 'is-offline'}`}>
-                    {isSocketConnected ? 'Connected to server' : 'Connection lost'}
+                    {isSocketConnected ? text.onlineConnected : text.onlineDisconnected}
                 </p>
 
-                <div className="app__scoreboard" aria-label="Scoreboard">
+                <div className="app__scoreboard" aria-label={text.gameScoreboardAriaLabel}>
                     <div className="app__turn-row">
                         <p className="app__turn">
-                            Current player:
+                            {text.gameCurrentPlayer}
                             <span className={`app__turn-player app__turn-player--${roomState.currentPlayer}`}>
                                 <span className="app__turn-arrow" aria-hidden="true">
                                     ►
                                 </span>
-                                {roomState.currentPlayer === 'blue' ? 'Blue' : 'Orange'}
+                                {roomState.currentPlayer === 'blue' ? text.gameBlue : text.gameOrange}
                             </span>
                         </p>
-                        <p className="app__round">Round: {roomState.hasWon ? roomState.moves : roomState.moves + 1}</p>
+                        <p className="app__round">{text.gameRound}: {roomState.hasWon ? roomState.moves : roomState.moves + 1}</p>
                     </div>
                     <div className="app__scores">
-                        <span className={`score-chip ${roomState.currentPlayer === 'blue' ? 'is-active' : ''}`}>Blue: {roomState.scores.blue}</span>
-                        <span className={`score-chip ${roomState.currentPlayer === 'orange' ? 'is-active' : ''}`}>Orange: {roomState.scores.orange}</span>
+                        <span className={`score-chip ${roomState.currentPlayer === 'blue' ? 'is-active' : ''}`}>{text.gameBlue}: {roomState.scores.blue}</span>
+                        <span className={`score-chip ${roomState.currentPlayer === 'orange' ? 'is-active' : ''}`}>{text.gameOrange}: {roomState.scores.orange}</span>
                     </div>
                     <p className="app__subtitle">
-                        You are: {playerId ? (playerId === 'blue' ? 'Blue (Host)' : 'Orange') : 'spectator'} · {isMyTurn ? 'Your turn' : 'Waiting...'}
+                        {text.onlineYouAre}: {playerId ? (playerId === 'blue' ? text.onlineBlueHost : text.gameOrange) : text.onlineSpectator} · {isMyTurn ? text.onlineYourTurn : text.onlineWaiting}
                     </p>
                 </div>
 
                 <div className="app__actions">
                     <button type="button" className="button button--ghost" onClick={leaveRoom}>
-                        Leave room
+                        {text.onlineLeaveRoom}
                     </button>
                     {roomState.status === 'finished' ? (
                         <button type="button" className="button button--primary" onClick={requestRematch}>
-                            Rematch
+                            {text.endRematch}
                         </button>
                     ) : null}
                     <button
                         type="button"
                         className="button button--ghost button--sound"
                         onClick={() => onSoundChange(!settings.soundEnabled)}
-                        aria-label={settings.soundEnabled ? 'Turn sound off' : 'Turn sound on'}
+                        aria-label={settings.soundEnabled ? text.gameTurnSoundOff : text.gameTurnSoundOn}
                     >
                         {settings.soundEnabled ? <LuVolume2 /> : <LuVolumeX />}
-                        {settings.soundEnabled ? 'Sound on' : 'Sound off'}
+                        {settings.soundEnabled ? text.gameSoundOn : text.gameSoundOff}
                     </button>
-                    <p className="app__stats">Moves: {roomState.moves}</p>
+                    <p className="app__stats">{text.gameMoves}: {roomState.moves}</p>
                 </div>
 
-                {roomState.status === 'finished' ? (
-                    <p className="app__subtitle">
-                        Rematch votes: Blue {roomState.rematchVotes.blue ? '✓' : '…'} · Orange {roomState.rematchVotes.orange ? '✓' : '…'}
-                    </p>
-                ) : null}
                 {error ? <p className="online-error">{error}</p> : null}
-                {roomState.hasWon ? <p className="app__win">{winnerText}</p> : null}
             </section>
 
             <MemoryBoard
@@ -369,6 +457,7 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
                 themeFront={roomState.themeFront}
                 flippedCards={roomState.flippedCards}
                 boardColumns={getBoardColumns(roomState.settings.boardSize)}
+                language={settings.language}
                 onFlip={(card) => flipCard(card.uid)}
             />
         </main>
