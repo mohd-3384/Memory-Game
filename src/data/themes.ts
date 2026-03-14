@@ -5,6 +5,9 @@ const imageModules = import.meta.glob('../assets/images/**/*.svg', {
     import: 'default',
 }) as Record<string, string>
 
+/**
+ * Resolves an image asset path from the Vite glob map.
+ */
 function imageUrl(path: string): string {
     const modulePath = `../assets/images/${path}`
     const fileUrl = imageModules[modulePath]
@@ -16,10 +19,16 @@ function imageUrl(path: string): string {
     return fileUrl
 }
 
+/**
+ * Escapes special regex characters from a plain string.
+ */
 function escapeRegex(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/**
+ * Collects and sorts all card assets for a theme folder by numeric suffix.
+ */
 function collectThemeCards(folder: string, baseName: string): string[] {
     const escapedBaseName = escapeRegex(baseName)
     const filePattern = new RegExp(
@@ -79,6 +88,9 @@ export const themes: Theme[] = [
     },
 ]
 
+/**
+ * Returns the theme by id or falls back to the first available theme.
+ */
 export function getThemeById(themeId: Theme['id']): Theme {
     return themes.find((theme) => theme.id === themeId) ?? themes[0]
 }

@@ -12,6 +12,9 @@ type MemoryBoardProps = {
     onFlip: (card: MemoryCard) => void
 }
 
+/**
+ * Renders the interactive memory board and emits flip actions for selected cards.
+ */
 export function MemoryBoard({ cards, themeFront, flippedCards, boardColumns, language, onFlip }: MemoryBoardProps) {
     const text = getTranslations(language)
 

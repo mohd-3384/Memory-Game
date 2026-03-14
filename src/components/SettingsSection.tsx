@@ -7,6 +7,9 @@ type SettingsSectionProps = {
     children: ReactNode
 }
 
+/**
+ * Wraps a settings group with a title and icon.
+ */
 export function SettingsSection({ icon: Icon, title, children }: SettingsSectionProps) {
     return (
         <section className="settings-section">

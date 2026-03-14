@@ -21,6 +21,9 @@ type LocationState = {
     playerKey?: string
 }
 
+/**
+ * Renders the online match, syncs socket state, and coordinates multiplayer actions.
+ */
 export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps) {
     const navigate = useNavigate()
     const { roomId = '' } = useParams()
@@ -259,6 +262,9 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
         return () => window.clearTimeout(timeout)
     }, [roomState?.hasWon])
 
+    /**
+     * Sends a validated card flip action to the server.
+     */
     function flipCard(cardUid: string) {
         if (!roomState || !roomId || !isMyTurn) {
             return
@@ -271,6 +277,9 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
         socket.emit('flip_card', { roomId, cardUid })
     }
 
+    /**
+     * Leaves the current room and clears local reconnect data.
+     */
     function leaveRoom() {
         if (roomId) {
             socket.emit('leave_room', { roomId, playerKey })
@@ -280,6 +289,9 @@ export function OnlineGamePage({ settings, onSoundChange }: OnlineGamePageProps)
         navigate('/online')
     }
 
+    /**
+     * Requests a rematch vote from the server after a finished game.
+     */
     function requestRematch() {
         if (!roomId) {
             return

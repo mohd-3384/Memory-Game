@@ -9,6 +9,9 @@ type LandingHeroProps = {
     onPlay: () => void
 }
 
+/**
+ * Displays the landing hero with language switching and the primary play action.
+ */
 export function LandingHero({ language, onLanguageChange, onPlay }: LandingHeroProps) {
     const text = getTranslations(language)
 

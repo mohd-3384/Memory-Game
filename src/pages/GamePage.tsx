@@ -12,6 +12,9 @@ type GamePageProps = {
     onSoundChange: (soundEnabled: boolean) => void
 }
 
+/**
+ * Handles local game state, card matching rules, scoring, and end-screen rendering.
+ */
 export function GamePage({ settings, onSoundChange }: GamePageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
@@ -180,6 +183,9 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
         return () => window.clearTimeout(timeout)
     }, [deck, flippedCards, currentPlayer, isMultiplayer])
 
+    /**
+     * Resets the current round with fresh shuffled cards.
+     */
     function startNewGame() {
         setDeck(buildDeck(activeTheme, settings.boardSize))
         setFlippedCards([])
@@ -190,6 +196,9 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
         hasPlayedWinSoundRef.current = false
     }
 
+    /**
+     * Flips a selectable card and advances the move counter when a pair attempt starts.
+     */
     function flipCard(card: MemoryCard) {
         if (card.matched || flippedCards.includes(card.uid) || flippedCards.length === 2 || isResolvingTurn) {
             return

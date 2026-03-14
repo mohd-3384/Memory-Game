@@ -7,6 +7,9 @@ type LandingPageProps = {
     onLanguageChange: (language: AppLanguage) => void
 }
 
+/**
+ * Renders the start screen and forwards language and navigation actions to the hero.
+ */
 export function LandingPage({ language, onLanguageChange }: LandingPageProps) {
     const navigate = useNavigate()
 

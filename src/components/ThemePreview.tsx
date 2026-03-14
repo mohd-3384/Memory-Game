@@ -11,6 +11,9 @@ type ThemePreviewProps = {
     onStart: () => void
 }
 
+/**
+ * Shows a compact visual preview of the selected setup and starts the game flow.
+ */
 export function ThemePreview({ theme, language, playerCount, boardSize, onStart }: ThemePreviewProps) {
     const sampleCard = theme.cards[0]
     const text = getTranslations(language)

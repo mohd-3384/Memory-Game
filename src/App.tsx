@@ -9,6 +9,9 @@ import { OnlineLobbyPage } from './pages/OnlineLobbyPage'
 import { OnlineGamePage } from './pages/OnlineGamePage'
 import './App.scss'
 
+/**
+ * Configures the root routes and stores global game settings.
+ */
 function App() {
   const [settings, setSettings] = useState<GameSettings>({
     themeId: 'code-vibes',
@@ -19,6 +22,9 @@ function App() {
     language: 'en',
   })
 
+  /**
+   * Updates the active theme and keeps the board size valid for the selected card set.
+   */
   function handleThemeChange(themeId: ThemeId) {
     const theme = getThemeById(themeId)
 
@@ -29,10 +35,16 @@ function App() {
     }))
   }
 
+  /**
+   * Updates the starting player for local multiplayer.
+   */
   function handlePlayerChange(player: PlayerId) {
     setSettings((currentSettings) => ({ ...currentSettings, player }))
   }
 
+  /**
+   * Switches between single-player and two-player mode.
+   */
   function handlePlayerCountChange(playerCount: PlayerCount) {
     setSettings((currentSettings) => ({
       ...currentSettings,
@@ -41,6 +53,9 @@ function App() {
     }))
   }
 
+  /**
+   * Changes the UI language used by all pages.
+   */
   function handleLanguageChange(language: AppLanguage) {
     setSettings((currentSettings) => ({ ...currentSettings, language }))
   }

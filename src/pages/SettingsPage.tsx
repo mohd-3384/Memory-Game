@@ -26,6 +26,9 @@ const boardSizes: BoardSize[] = [16, 24, 36]
 const players: PlayerId[] = ['blue', 'orange']
 const playerCounts: PlayerCount[] = [1, 2]
 
+/**
+ * Lets players configure language, theme, mode, board size, and sound before starting.
+ */
 export function SettingsPage({
     settings,
     onLanguageChange,

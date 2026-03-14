@@ -286,6 +286,9 @@ export const translations: Record<AppLanguage, TranslationSet> = {
     },
 }
 
+/**
+ * Returns the language-specific text dictionary.
+ */
 export function getTranslations(language: AppLanguage) {
     return translations[language]
 }

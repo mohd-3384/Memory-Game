@@ -13,6 +13,9 @@ type OnlineLobbyPageProps = {
     settings: GameSettings
 }
 
+/**
+ * Manages online room creation and joining before the multiplayer match starts.
+ */
 export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
@@ -48,6 +51,9 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
         setError('')
     }
 
+    /**
+     * Ensures a connected socket before emitting room-related events.
+     */
     async function ensureSocketConnected() {
         if (socket.connected) {
             return
@@ -122,6 +128,9 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
         }
     }, [roomState, roomId, playerId, playerKey, navigate])
 
+    /**
+     * Creates a new room and initializes the host session.
+     */
     function createRoom() {
         void (async () => {
             setError('')
@@ -180,6 +189,9 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
         })()
     }
 
+    /**
+     * Joins an existing room by code and reuses reconnect credentials when available.
+     */
     function joinRoom() {
         void (async () => {
             const normalized = joinCode.trim().toUpperCase()
@@ -247,6 +259,9 @@ export function OnlineLobbyPage({ settings }: OnlineLobbyPageProps) {
         })()
     }
 
+    /**
+     * Requests match start from the host side once both players are connected.
+     */
     function startOnlineGame() {
         void (async () => {
             if (!roomId) {
