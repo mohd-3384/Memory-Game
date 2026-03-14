@@ -2,17 +2,19 @@ import { useMemo } from 'react'
 import { HiOutlinePaintBrush } from 'react-icons/hi2'
 import { LuVolume2 } from 'react-icons/lu'
 import { LuUsers } from 'react-icons/lu'
+import { LuUserRound } from 'react-icons/lu'
 import { PiCardsThreeLight } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
 import { SettingsSection } from '../components/SettingsSection'
 import { ThemePreview } from '../components/ThemePreview'
 import { getThemeById, themes } from '../data/themes'
-import type { BoardSize, GameSettings, PlayerId, ThemeId } from '../interfaces/game.interface'
+import type { BoardSize, GameSettings, PlayerCount, PlayerId, ThemeId } from '../interfaces/game.interface'
 import { isBoardSizeAvailable } from '../utils/game'
 
 type SettingsPageProps = {
     settings: GameSettings
     onThemeChange: (themeId: ThemeId) => void
+    onPlayerCountChange: (playerCount: PlayerCount) => void
     onPlayerChange: (player: PlayerId) => void
     onBoardSizeChange: (boardSize: BoardSize) => void
     onSoundChange: (soundEnabled: boolean) => void
@@ -20,8 +22,16 @@ type SettingsPageProps = {
 
 const boardSizes: BoardSize[] = [16, 24, 36]
 const players: PlayerId[] = ['blue', 'orange']
+const playerCounts: PlayerCount[] = [1, 2]
 
-export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardSizeChange, onSoundChange }: SettingsPageProps) {
+export function SettingsPage({
+    settings,
+    onThemeChange,
+    onPlayerCountChange,
+    onPlayerChange,
+    onBoardSizeChange,
+    onSoundChange,
+}: SettingsPageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
 
@@ -52,23 +62,43 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
                         ))}
                     </SettingsSection>
 
-                    <SettingsSection icon={LuUsers} title="Choose player">
-                        {players.map((player) => (
+                    <SettingsSection icon={LuUsers} title="Number of players">
+                        {playerCounts.map((playerCount) => (
                             <label
-                                key={player}
-                                className={`settings-option ${settings.player === player ? 'is-selected' : ''}`}
+                                key={playerCount}
+                                className={`settings-option ${settings.playerCount === playerCount ? 'is-selected' : ''}`}
                             >
                                 <input
                                     type="radio"
-                                    name="player"
-                                    value={player}
-                                    checked={settings.player === player}
-                                    onChange={() => onPlayerChange(player)}
+                                    name="player-count"
+                                    value={playerCount}
+                                    checked={settings.playerCount === playerCount}
+                                    onChange={() => onPlayerCountChange(playerCount)}
                                 />
-                                <span>{player === 'blue' ? 'Blue' : 'Orange'}</span>
+                                <span>{playerCount === 1 ? '1 Player' : '2 Players (online)'}</span>
                             </label>
                         ))}
                     </SettingsSection>
+
+                    {settings.playerCount === 2 ? (
+                        <SettingsSection icon={LuUserRound} title="Starting player">
+                            {players.map((player) => (
+                                <label
+                                    key={player}
+                                    className={`settings-option ${settings.player === player ? 'is-selected' : ''}`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="player"
+                                        value={player}
+                                        checked={settings.player === player}
+                                        onChange={() => onPlayerChange(player)}
+                                    />
+                                    <span>{player === 'blue' ? 'Blue' : 'Orange'}</span>
+                                </label>
+                            ))}
+                        </SettingsSection>
+                    ) : null}
 
                     <SettingsSection icon={PiCardsThreeLight} title="Board size">
                         {boardSizes.map((boardSize) => {
@@ -118,7 +148,12 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
                     </SettingsSection>
                 </div>
 
-                <ThemePreview theme={activeTheme} player={settings.player} boardSize={settings.boardSize} onStart={() => navigate('/game')} />
+                <ThemePreview
+                    theme={activeTheme}
+                    playerCount={settings.playerCount}
+                    boardSize={settings.boardSize}
+                    onStart={() => navigate(settings.playerCount === 2 ? '/online' : '/game')}
+                />
             </section>
         </main>
     )

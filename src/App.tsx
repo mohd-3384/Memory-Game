@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import type { BoardSize, GameSettings, PlayerId, ThemeId } from './interfaces/game.interface'
+import type { BoardSize, GameSettings, PlayerCount, PlayerId, ThemeId } from './interfaces/game.interface'
 import { getThemeById } from './data/themes'
 import { LandingPage } from './pages/LandingPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { GamePage } from './pages/GamePage'
+import { OnlineLobbyPage } from './pages/OnlineLobbyPage'
+import { OnlineGamePage } from './pages/OnlineGamePage'
 import './App.scss'
 
 function App() {
   const [settings, setSettings] = useState<GameSettings>({
     themeId: 'code-vibes',
+    playerCount: 1,
     player: 'blue',
     boardSize: 16,
     soundEnabled: true,
@@ -29,6 +32,14 @@ function App() {
     setSettings((currentSettings) => ({ ...currentSettings, player }))
   }
 
+  function handlePlayerCountChange(playerCount: PlayerCount) {
+    setSettings((currentSettings) => ({
+      ...currentSettings,
+      playerCount,
+      player: playerCount === 1 ? 'blue' : currentSettings.player,
+    }))
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -38,6 +49,7 @@ function App() {
           <SettingsPage
             settings={settings}
             onThemeChange={handleThemeChange}
+            onPlayerCountChange={handlePlayerCountChange}
             onPlayerChange={handlePlayerChange}
             onBoardSizeChange={(boardSize: BoardSize) =>
               setSettings((currentSettings) => ({ ...currentSettings, boardSize }))
@@ -52,6 +64,18 @@ function App() {
         path="/game"
         element={
           <GamePage
+            settings={settings}
+            onSoundChange={(soundEnabled: boolean) =>
+              setSettings((currentSettings) => ({ ...currentSettings, soundEnabled }))
+            }
+          />
+        }
+      />
+      <Route path="/online" element={<OnlineLobbyPage settings={settings} />} />
+      <Route
+        path="/online-game/:roomId"
+        element={
+          <OnlineGamePage
             settings={settings}
             onSoundChange={(soundEnabled: boolean) =>
               setSettings((currentSettings) => ({ ...currentSettings, soundEnabled }))

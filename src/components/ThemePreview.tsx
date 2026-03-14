@@ -1,14 +1,14 @@
-import type { BoardSize, PlayerId, Theme } from '../interfaces/game.interface'
+import type { BoardSize, PlayerCount, Theme } from '../interfaces/game.interface'
 import { LuSquarePlay } from 'react-icons/lu'
 
 type ThemePreviewProps = {
     theme: Theme
-    player: PlayerId
+    playerCount: PlayerCount
     boardSize: BoardSize
     onStart: () => void
 }
 
-export function ThemePreview({ theme, player, boardSize, onStart }: ThemePreviewProps) {
+export function ThemePreview({ theme, playerCount, boardSize, onStart }: ThemePreviewProps) {
     const sampleCard = theme.cards[0]
 
     return (
@@ -22,7 +22,7 @@ export function ThemePreview({ theme, player, boardSize, onStart }: ThemePreview
 
             <div className="preview-footer">
                 <span>{theme.label}</span>
-                <span>{player === 'blue' ? 'Blue' : 'Orange'}</span>
+                <span>{playerCount === 1 ? '1 player' : '2 players'}</span>
                 <span>{boardSize} cards</span>
                 <button type="button" className="preview-footer__start" onClick={onStart}>
                     <LuSquarePlay aria-hidden="true" />

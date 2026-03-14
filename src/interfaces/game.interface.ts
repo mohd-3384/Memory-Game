@@ -1,5 +1,6 @@
 export type ThemeId = 'code-vibes' | 'DA' | 'food' | 'games'
 export type PlayerId = 'blue' | 'orange'
+export type PlayerCount = 1 | 2
 export type BoardSize = 16 | 24 | 36
 
 export interface Theme {
@@ -19,6 +20,7 @@ export interface MemoryCard {
 
 export interface GameSettings {
     themeId: ThemeId
+    playerCount: PlayerCount
     player: PlayerId
     boardSize: BoardSize
     soundEnabled: boolean

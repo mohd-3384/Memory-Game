@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: memory-game-socket
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server/server.mjs
+    autoDeploy: true
+    healthCheckPath: /health

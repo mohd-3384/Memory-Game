@@ -48,3 +48,44 @@ export default tseslint.config({
   },
 })
 ```
+
+## Build and FTP deployment
+
+### Production build (Vite)
+
+```bash
+npm install
+npm run build
+```
+
+The production files are generated in the dist folder.
+
+### Optional environment setup
+
+1. Copy .env.production.example to .env.production.
+2. Set VITE_SOCKET_URL to your deployed Socket.IO backend.
+3. Set VITE_BASE_PATH:
+- Use / for root domain deployment.
+- Use /memory/ if the app is hosted under a subfolder like https://example.com/memory/.
+
+### Upload to FTP
+
+1. Connect to FTP.
+2. Open your web root (usually public_html or htdocs).
+3. Upload only the content of dist, not the src folder.
+
+### SPA routing on Apache
+
+The file public/.htaccess is included and copied into dist during build.
+It rewrites unknown routes to index.html so React Router works after page refresh.
+
+## Important for online multiplayer
+
+FTP hosting deploys only static files.
+The online 2-player mode also needs the Node.js Socket.IO server from server/server.mjs running on a separate Node-capable host.
+
+Run the socket server locally with:
+
+```bash
+npm run server
+```

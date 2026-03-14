@@ -24,12 +24,15 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
     const [scores, setScores] = useState<Record<PlayerId, number>>({ blue: 0, orange: 0 })
     const [isResolvingTurn, setIsResolvingTurn] = useState(false)
 
+    const isMultiplayer = settings.playerCount === 2
     const hasWon = deck.length > 0 && deck.every((card) => card.matched)
     const currentRound = hasWon ? moves : moves + 1
     const winnerText =
-        scores.blue === scores.orange
-            ? 'It is a draw! Both players have the same number of pairs.'
-            : `${scores.blue > scores.orange ? 'Blue' : 'Orange'} wins with ${Math.max(scores.blue, scores.orange)} pairs.`
+        !isMultiplayer
+            ? `You matched all pairs in ${moves} moves.`
+            : scores.blue === scores.orange
+                ? 'It is a draw! Both players have the same number of pairs.'
+                : `${scores.blue > scores.orange ? 'Blue' : 'Orange'} wins with ${Math.max(scores.blue, scores.orange)} pairs.`
 
     function getAudioContext(): AudioContext | null {
         if (!settings.soundEnabled) {
@@ -119,11 +122,11 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
         setDeck(buildDeck(activeTheme, settings.boardSize))
         setFlippedCards([])
         setMoves(0)
-        setCurrentPlayer(settings.player)
+        setCurrentPlayer(settings.playerCount === 2 ? settings.player : 'blue')
         setScores({ blue: 0, orange: 0 })
         setIsResolvingTurn(false)
         hasPlayedWinSoundRef.current = false
-    }, [activeTheme, settings.boardSize, settings.player])
+    }, [activeTheme, settings.boardSize, settings.player, settings.playerCount])
 
     useEffect(() => {
         if (hasWon && !hasPlayedWinSoundRef.current) {
@@ -169,18 +172,20 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
 
         const timeout = window.setTimeout(() => {
             setFlippedCards([])
-            setCurrentPlayer((previousPlayer) => (previousPlayer === 'blue' ? 'orange' : 'blue'))
+            if (isMultiplayer) {
+                setCurrentPlayer((previousPlayer) => (previousPlayer === 'blue' ? 'orange' : 'blue'))
+            }
             setIsResolvingTurn(false)
         }, 900)
 
         return () => window.clearTimeout(timeout)
-    }, [deck, flippedCards, currentPlayer])
+    }, [deck, flippedCards, currentPlayer, isMultiplayer])
 
     function startNewGame() {
         setDeck(buildDeck(activeTheme, settings.boardSize))
         setFlippedCards([])
         setMoves(0)
-        setCurrentPlayer(settings.player)
+        setCurrentPlayer(settings.playerCount === 2 ? settings.player : 'blue')
         setScores({ blue: 0, orange: 0 })
         setIsResolvingTurn(false)
         hasPlayedWinSoundRef.current = false
@@ -208,20 +213,30 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
 
                 <div className="app__scoreboard" aria-label="Scoreboard">
                     <div className="app__turn-row">
-                        <p className="app__turn">
-                            Current player:
-                            <span className={`app__turn-player app__turn-player--${currentPlayer}`}>
-                                <span className="app__turn-arrow" aria-hidden="true">
-                                    ►
+                        {isMultiplayer ? (
+                            <p className="app__turn">
+                                Current player:
+                                <span className={`app__turn-player app__turn-player--${currentPlayer}`}>
+                                    <span className="app__turn-arrow" aria-hidden="true">
+                                        ►
+                                    </span>
+                                    {currentPlayer === 'blue' ? 'Blue' : 'Orange'}
                                 </span>
-                                {currentPlayer === 'blue' ? 'Blue' : 'Orange'}
-                            </span>
-                        </p>
+                            </p>
+                        ) : (
+                            <p className="app__turn">Mode: Single player</p>
+                        )}
                         <p className="app__round">Round: {currentRound}</p>
                     </div>
                     <div className="app__scores">
-                        <span className={`score-chip ${currentPlayer === 'blue' ? 'is-active' : ''}`}>Blue: {scores.blue}</span>
-                        <span className={`score-chip ${currentPlayer === 'orange' ? 'is-active' : ''}`}>Orange: {scores.orange}</span>
+                        {isMultiplayer ? (
+                            <>
+                                <span className={`score-chip ${currentPlayer === 'blue' ? 'is-active' : ''}`}>Blue: {scores.blue}</span>
+                                <span className={`score-chip ${currentPlayer === 'orange' ? 'is-active' : ''}`}>Orange: {scores.orange}</span>
+                            </>
+                        ) : (
+                            <span className="score-chip is-active">Pairs: {scores.blue}</span>
+                        )}
                     </div>
                 </div>
 
