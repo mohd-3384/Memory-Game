@@ -22,6 +22,7 @@
 
 .settings-header {
     margin-bottom: 2.2rem;
+    width: fit-content;
 }
 
 .settings-header__title {
@@ -33,7 +34,7 @@
 
 .settings-header__line {
     display: block;
-    width: 230px;
+    width: 100%;
     height: 4px;
     margin-top: 0.6rem;
     position: relative;
