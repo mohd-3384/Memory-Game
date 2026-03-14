@@ -35,6 +35,78 @@
     color: $text-soft;
 }
 
+.app__scoreboard {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: $radius-md;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.app__turn {
+    margin: 0;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.app__turn-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 700;
+}
+
+.app__turn-player--blue {
+    color: #62b7ff;
+}
+
+.app__turn-player--orange {
+    color: #ffb15a;
+}
+
+.app__turn-arrow {
+    line-height: 1;
+    font-size: 0.9rem;
+}
+
+.app__turn-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.app__round {
+    margin: 0;
+    font-size: 0.95rem;
+    color: $text-soft;
+}
+
+.app__scores {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.score-chip {
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: $text-soft;
+    font-size: 0.9rem;
+}
+
+.score-chip.is-active {
+    border-color: var(--theme-accent);
+    color: $text-main;
+    background: color-mix(in srgb, var(--theme-accent) 22%, transparent);
+}
+
 .app__actions {
     margin-top: 1rem;
     display: flex;
@@ -57,6 +129,16 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     background: transparent;
     color: $text-main;
+}
+
+.button--sound {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+}
+
+.button--sound svg {
+    font-size: 1rem;
 }
 
 .app__stats {

@@ -21,4 +21,5 @@ export interface GameSettings {
     themeId: ThemeId
     player: PlayerId
     boardSize: BoardSize
+    soundEnabled: boolean
 }

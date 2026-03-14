@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { HiOutlinePaintBrush } from 'react-icons/hi2'
+import { LuVolume2 } from 'react-icons/lu'
 import { LuUsers } from 'react-icons/lu'
 import { PiCardsThreeLight } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
@@ -14,12 +15,13 @@ type SettingsPageProps = {
     onThemeChange: (themeId: ThemeId) => void
     onPlayerChange: (player: PlayerId) => void
     onBoardSizeChange: (boardSize: BoardSize) => void
+    onSoundChange: (soundEnabled: boolean) => void
 }
 
 const boardSizes: BoardSize[] = [16, 24, 36]
 const players: PlayerId[] = ['blue', 'orange']
 
-export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardSizeChange }: SettingsPageProps) {
+export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardSizeChange, onSoundChange }: SettingsPageProps) {
     const navigate = useNavigate()
     const activeTheme = useMemo(() => getThemeById(settings.themeId), [settings.themeId])
 
@@ -34,7 +36,10 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
 
                     <SettingsSection icon={HiOutlinePaintBrush} title="Game themes">
                         {themes.map((theme) => (
-                            <label key={theme.id} className="settings-option">
+                            <label
+                                key={theme.id}
+                                className={`settings-option ${settings.themeId === theme.id ? 'is-selected' : ''}`}
+                            >
                                 <input
                                     type="radio"
                                     name="theme"
@@ -49,7 +54,10 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
 
                     <SettingsSection icon={LuUsers} title="Choose player">
                         {players.map((player) => (
-                            <label key={player} className="settings-option">
+                            <label
+                                key={player}
+                                className={`settings-option ${settings.player === player ? 'is-selected' : ''}`}
+                            >
                                 <input
                                     type="radio"
                                     name="player"
@@ -67,7 +75,10 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
                             const disabled = !isBoardSizeAvailable(activeTheme, boardSize)
 
                             return (
-                                <label key={boardSize} className={`settings-option ${disabled ? 'is-disabled' : ''}`}>
+                                <label
+                                    key={boardSize}
+                                    className={`settings-option ${disabled ? 'is-disabled' : ''} ${settings.boardSize === boardSize ? 'is-selected' : ''}`}
+                                >
                                     <input
                                         type="radio"
                                         name="board-size"
@@ -80,6 +91,30 @@ export function SettingsPage({ settings, onThemeChange, onPlayerChange, onBoardS
                                 </label>
                             )
                         })}
+                    </SettingsSection>
+
+                    <SettingsSection icon={LuVolume2} title="Sound effects">
+                        <label className={`settings-option ${settings.soundEnabled ? 'is-selected' : ''}`}>
+                            <input
+                                type="radio"
+                                name="sound"
+                                value="on"
+                                checked={settings.soundEnabled}
+                                onChange={() => onSoundChange(true)}
+                            />
+                            <span>On</span>
+                        </label>
+
+                        <label className={`settings-option ${!settings.soundEnabled ? 'is-selected' : ''}`}>
+                            <input
+                                type="radio"
+                                name="sound"
+                                value="off"
+                                checked={!settings.soundEnabled}
+                                onChange={() => onSoundChange(false)}
+                            />
+                            <span>Off</span>
+                        </label>
                     </SettingsSection>
                 </div>
 

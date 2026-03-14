@@ -12,6 +12,7 @@ function App() {
     themeId: 'code-vibes',
     player: 'blue',
     boardSize: 16,
+    soundEnabled: true,
   })
 
   function handleThemeChange(themeId: ThemeId) {
@@ -41,10 +42,23 @@ function App() {
             onBoardSizeChange={(boardSize: BoardSize) =>
               setSettings((currentSettings) => ({ ...currentSettings, boardSize }))
             }
+            onSoundChange={(soundEnabled: boolean) =>
+              setSettings((currentSettings) => ({ ...currentSettings, soundEnabled }))
+            }
           />
         }
       />
-      <Route path="/game" element={<GamePage settings={settings} />} />
+      <Route
+        path="/game"
+        element={
+          <GamePage
+            settings={settings}
+            onSoundChange={(soundEnabled: boolean) =>
+              setSettings((currentSettings) => ({ ...currentSettings, soundEnabled }))
+            }
+          />
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

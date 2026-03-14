@@ -13,7 +13,7 @@ export function MemoryBoard({ cards, themeFront, flippedCards, boardColumns, onF
     return (
         <section
             className="board"
-            aria-label="Memory Spielfeld"
+            aria-label="Memory board"
             style={{ '--board-columns': String(boardColumns) } as CSSProperties}
         >
             {cards.map((card) => {
@@ -25,11 +25,11 @@ export function MemoryBoard({ cards, themeFront, flippedCards, boardColumns, onF
                         type="button"
                         className={`memory-card ${isFlipped ? 'is-flipped' : ''}`}
                         onClick={() => onFlip(card)}
-                        aria-label="Memory Karte"
+                        aria-label="Memory card"
                     >
                         <span className="memory-card__inner">
-                            <img className="memory-card__face memory-card__face--front" src={themeFront} alt="Kartenrueckseite" />
-                            <img className="memory-card__face memory-card__face--back" src={card.image} alt="Memory Motiv" />
+                            <img className="memory-card__face memory-card__face--front" src={themeFront} alt="Card back" />
+                            <img className="memory-card__face memory-card__face--back" src={card.image} alt="Memory icon" />
                         </span>
                     </button>
                 )

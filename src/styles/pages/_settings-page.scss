@@ -2,8 +2,8 @@
 
 .settings-page {
     min-height: 100vh;
-    background: linear-gradient(180deg, #f8f7f4 0%, #f1f0ea 100%);
-    color: #2d3137;
+    background: linear-gradient(180deg, #31343a 0%, #2b2e33 100%);
+    color: $text-main;
 }
 
 .settings-layout {
@@ -28,7 +28,7 @@
     margin: 0;
     font-size: clamp(3rem, 4vw, 4.2rem);
     font-weight: 700;
-    color: #30343a;
+    color: $text-main;
 }
 
 .settings-header__line {

@@ -61,14 +61,14 @@ export const themes: Theme[] = [
         label: 'Gaming theme',
         front: imageUrl('games/Property 1=Component 1.svg'),
         cards: collectThemeCards('games', 'Property 1=Component 2'),
-        accent: '#4a8dff',
+        accent: '#f73aa7',
     },
     {
         id: 'DA',
         label: 'DA Projects theme',
         front: imageUrl('DA/Property 1=Component 1.svg'),
         cards: collectThemeCards('DA', 'Property 1=Component 2'),
-        accent: '#f73aa7',
+        accent: '#0d84af',
     },
     {
         id: 'food',
