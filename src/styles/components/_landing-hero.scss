@@ -1,0 +1,50 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.landing__ornament {
+    position: absolute;
+    left: -2.6rem;
+    bottom: -8.2rem;
+    font-size: clamp(14rem, 26vw, 22rem);
+    color: rgba(#d0d46b, 0.08);
+    transform: rotate(26deg);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.play-button {
+    @include button-base($radius-md, 0.9rem, 1.2rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.1rem;
+    min-width: 230px;
+    border: 1px solid rgba(#000, 0.15);
+    background: #dde062;
+    color: #22262f;
+    font-size: 1.9rem;
+    font-weight: 700;
+}
+
+.play-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(#dde062, 0.25);
+}
+
+.play-button__left {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.play-button svg {
+    font-size: 1.8rem;
+}
+
+@media (max-width: 560px) {
+    .play-button {
+        min-width: 190px;
+        font-size: 1.5rem;
+        padding: 0.8rem 1rem;
+    }
+}

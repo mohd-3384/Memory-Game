@@ -1,0 +1,44 @@
+@use '../variables' as *;
+
+.landing {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: grid;
+    align-items: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #31343a 0%, #2b2e33 100%);
+}
+
+.landing__content {
+    width: min(1020px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding-left: clamp(0rem, 7vw, 6.5rem);
+    z-index: 2;
+}
+
+.landing__kicker {
+    margin: 0;
+    font-size: clamp(1.8rem, 2.7vw, 3rem);
+    color: rgba($text-main, 0.9);
+    font-weight: 400;
+}
+
+.landing__title {
+    margin: 1.2rem 0 3.3rem;
+    font-family: 'Red Rose', serif;
+    font-size: clamp(3.5rem, 9.2vw, 7.6rem);
+    line-height: 0.93;
+    font-weight: 700;
+    color: $text-main;
+}
+
+@media (max-width: 560px) {
+    .landing__kicker {
+        font-size: 1.25rem;
+    }
+
+    .landing__title {
+        margin: 0.8rem 0 1.8rem;
+    }
+}

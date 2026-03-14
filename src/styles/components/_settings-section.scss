@@ -1,0 +1,57 @@
+@use '../variables' as *;
+
+.settings-section {
+    margin-bottom: 2.4rem;
+}
+
+.settings-section__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.9rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.settings-section__title svg:first-child {
+    font-size: 1.35rem;
+}
+
+.settings-section:nth-of-type(1) .settings-section__title svg:first-child {
+    color: #ff2aad;
+}
+
+.settings-section:nth-of-type(2) .settings-section__title svg:first-child {
+    color: #20d9d0;
+}
+
+.settings-section:nth-of-type(3) .settings-section__title svg:first-child {
+    color: #4161ff;
+}
+
+.settings-section__content {
+    display: grid;
+    gap: 0.65rem;
+    padding-left: 2rem;
+}
+
+.settings-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: fit-content;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.settings-option input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #2f3338;
+}
+
+.settings-option.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
