@@ -260,6 +260,11 @@ export function GamePage({ settings, onSoundChange }: GamePageProps) {
                     </div>
 
                     <div className="app__end-actions">
+                        {!isMultiplayer ? (
+                            <button type="button" className="button button--ghost" onClick={startNewGame}>
+                                {text.endReplay}
+                            </button>
+                        ) : null}
                         <button type="button" className="button button--primary" onClick={() => navigate('/')}>
                             {text.endBackToStart}
                         </button>

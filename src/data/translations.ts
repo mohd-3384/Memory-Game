@@ -51,6 +51,7 @@ type TranslationSet = {
     endADraw: string
     endMatchedInMoves: string
     endFinalScore: string
+    endReplay: string
     endBackToStart: string
     endRematch: string
     onlineKicker: string
@@ -147,6 +148,7 @@ export const translations: Record<AppLanguage, TranslationSet> = {
         endADraw: 'A Draw',
         endMatchedInMoves: 'You matched all pairs in {moves} moves.',
         endFinalScore: 'Final score',
+        endReplay: 'Play again',
         endBackToStart: 'Back to start',
         endRematch: 'Rematch',
         onlineKicker: 'Online Multiplayer',
@@ -213,7 +215,7 @@ export const translations: Record<AppLanguage, TranslationSet> = {
         previewStart: 'Starten',
         boardAriaLabel: 'Memory Spielfeld',
         boardCardAriaLabel: 'Memory Karte',
-        boardCardBackAlt: 'Kartenrueckseite',
+        boardCardBackAlt: 'Kartenrückseite',
         boardCardFrontAlt: 'Memory Symbol',
         gameKicker: 'Memory Spiel',
         gameTheme: 'Thema',
@@ -231,7 +233,7 @@ export const translations: Record<AppLanguage, TranslationSet> = {
         gameTurnSoundOff: 'Sound ausschalten',
         gameTurnSoundOn: 'Sound einschalten',
         gameNewGame: 'Neues Spiel',
-        gameMoves: 'Zuege',
+        gameMoves: 'Züge',
         endGameOver: 'Spiel Vorbei',
         endYouWin: 'Du gewinnst',
         endYouLost: 'Du verlierst',
@@ -239,18 +241,19 @@ export const translations: Record<AppLanguage, TranslationSet> = {
         endResultIs: 'Das Ergebnis ist',
         endWinnerIs: 'Der Gewinner ist',
         endADraw: 'Unentschieden',
-        endMatchedInMoves: 'Du hast alle Paare in {moves} Zuegen gefunden.',
+        endMatchedInMoves: 'Du hast alle Paare in {moves} Zügen gefunden.',
         endFinalScore: 'Endstand',
-        endBackToStart: 'Zurueck zum Start',
+        endReplay: 'Spiel wiederholen',
+        endBackToStart: 'Zurück zum Start',
         endRematch: 'Revanche',
         onlineKicker: 'Online Mehrspieler',
-        onlinePlayOnTwoDevices: 'Spiele auf 2 Geraeten',
+        onlinePlayOnTwoDevices: 'Spiele auf 2 Geräten',
         onlineCreateOrJoin: 'Erstelle einen Raum oder trete mit Code bei.',
         onlineConnected: 'Mit Server verbunden',
         onlineDisconnected: 'Verbindung verloren',
         onlineCreateRoom: 'Raum erstellen',
         onlineCreating: 'Erstelle...',
-        onlineBackToSettings: 'Zurueck zu Einstellungen',
+        onlineBackToSettings: 'Zurück zu Einstellungen',
         onlineJoinRoom: 'Raum beitreten',
         onlineEnterCode: 'Code eingeben',
         onlineJoin: 'Beitreten',
@@ -267,7 +270,7 @@ export const translations: Record<AppLanguage, TranslationSet> = {
         onlineWaitingForHost: 'Warte auf den Host...',
         onlineConnecting: 'Verbinden...',
         onlineSyncing: 'Raumstatus wird synchronisiert.',
-        onlineBack: 'Zurueck',
+        onlineBack: 'Zurück',
         onlineLeaveRoom: 'Raum verlassen',
         onlineSpectator: 'Zuschauer',
         onlineYourTurn: 'Du bist dran',
